@@ -2,40 +2,55 @@ from tkinter import *
 from tkinter import filedialog
 from PIL import ImageTk, Image
 import imageio, threading
+from skimage.transform import resize
 from time import sleep
 
+size = (256, 256)
 
-def stream(label):
+def stream(label, fps):
     while True:
-        for image in video.iter_data():
-            sleep(0.02)
-            frame_image = ImageTk.PhotoImage(Image.fromarray(image))
+        for image in resizedVideo:
+            sleep(1 / fps)
+            frame_image = ImageTk.PhotoImage(image)
             label.config(image=frame_image)
             label.image = frame_image
 
-1
+def resizeVideo(video):
+    frames = []
+    for frame in video:
+        image = Image.fromarray(frame.astype('uint8'), 'RGB')
+        image = image.resize(size)
+        frames.append(image)
+    return frames
+
+
 
 def openSourceImage():
     global sourceImage
     root.filename = filedialog.askopenfilename(title="Select a file",
                                                filetypes=(("Image files", "*.jpg"), ("All files", "*.*")))
-    sourceImage = ImageTk.PhotoImage(Image.open(root.filename))
-    sourceImageLabel = Label(sourceImageFrame, image=sourceImage).grid(row=1, column=0)
-
+    image = Image.open(root.filename)
+    resizedImage = image.resize(size)
+    sourceImage = ImageTk.PhotoImage(resizedImage)
+    sourceImageLabel = Label(sourceImageFrame, image=sourceImage)
+    sourceImageLabel.grid(row=1, column=0)
 
 def openSourceVideo():
-    global video
+    global resizedVideo
     root.filename = filedialog.askopenfilename(title="Select a file",
                                                filetypes=(("Video files", "*.mp4"), ("All files", "*.*")))
     video = imageio.get_reader(root.filename)
+    fps = video.get_meta_data()['fps']
+    resizedVideo = resizeVideo(video)
     sourceVideoLabel = Label(sourceVideoFrame)
     sourceVideoLabel.grid(row=1, column=0)
-    thread = threading.Thread(target=stream, args=(sourceVideoLabel,))
+    thread = threading.Thread(target=stream, args=(sourceVideoLabel, fps,))
     thread.daemon = 1
     thread.start()
 
 
 root = Tk()
+root.title("First Order Model")
 
 sourcesFrame = LabelFrame(root, text="Source input")
 sourcesFrame.pack(padx=10, pady=10)
