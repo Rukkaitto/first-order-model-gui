@@ -4,8 +4,11 @@ from PIL import ImageTk, Image
 import imageio, threading
 from skimage.transform import resize
 from time import sleep
+from demo import load_checkpoints
 
 size = (256, 256)
+generator, kp_detector = load_checkpoints(config_path='config/vox-256.yaml', 
+                            checkpoint_path='./checkpoints/vox-cpk.pth.tar')
 
 def stream(label, fps):
     while True:
@@ -27,7 +30,7 @@ def resizeVideo(video):
 
 def openSourceImage():
     global sourceImage
-    root.filename = filedialog.askopenfilename(title="Select a file",
+    root.filename = filedialog.askopenfilename(title="Select the source image",
                                                filetypes=(("Image files", "*.jpg"), ("All files", "*.*")))
     image = Image.open(root.filename)
     resizedImage = image.resize(size)
@@ -37,7 +40,7 @@ def openSourceImage():
 
 def openSourceVideo():
     global resizedVideo
-    root.filename = filedialog.askopenfilename(title="Select a file",
+    root.filename = filedialog.askopenfilename(title="Select the source video",
                                                filetypes=(("Video files", "*.mp4"), ("All files", "*.*")))
     video = imageio.get_reader(root.filename)
     fps = video.get_meta_data()['fps']
